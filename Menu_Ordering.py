@@ -1,0 +1,158 @@
+from abc import ABC, abstractmethod
+
+
+class MenuItem(ABC):
+    """Base class with encapsulated attributes, getters/setters, and polymorphic subtotal."""
+
+    def __init__(self, item_id: int, name: str, price: float):
+        self.__item_id = item_id
+        self.set_name(name)
+        self.set_price(price)
+
+    # Getters
+    def get_item_id(self) -> int:
+        return self.__item_id
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def get_price(self) -> float:
+        return self.__price
+
+    # Setters with validation
+    def set_name(self, name: str) -> None:
+        cleaned = name.strip()
+        if not cleaned:
+            raise ValueError("Product name cannot be empty.")
+        self.__name = cleaned
+
+    def set_price(self, price: float) -> None:
+        if price < 0:
+            raise ValueError("Product price cannot be negative.")
+        self.__price = float(price)
+
+    @abstractmethod
+    def calculate_subtotal(self, quantity: int) -> float:
+        """Overridden by subclasses for polymorphic subtotal calculation."""
+        pass
+
+    def format_line(self) -> str:
+        return f"{self.get_item_id():<5} {self.get_name():<15} ₱{self.get_price():>8.2f}"
+
+
+class FoodItem(MenuItem):
+    """Subclass inheriting from MenuItem."""
+
+    def calculate_subtotal(self, quantity: int) -> float:
+        return self.get_price() * quantity
+
+
+class DrinkItem(MenuItem):
+    """Subclass inheriting from MenuItem."""
+
+    def calculate_subtotal(self, quantity: int) -> float:
+        return self.get_price() * quantity
+
+
+class OrderLine:
+    """Encapsulates an ordered item and its quantity with getters and setters."""
+
+    def __init__(self, item: MenuItem, quantity: int):
+        self.set_item(item)
+        self.set_quantity(quantity)
+
+    # Getters
+    def get_item(self) -> MenuItem:
+        return self.__item
+
+    def get_quantity(self) -> int:
+        return self.__quantity
+
+    # Setters with validation
+    def set_item(self, item: MenuItem) -> None:
+        if not isinstance(item, MenuItem):
+            raise TypeError("Ordered item must be a MenuItem instance.")
+        self.__item = item
+
+    def set_quantity(self, quantity: int) -> None:
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero.")
+        self.__quantity = int(quantity)
+
+    def get_subtotal(self) -> float:
+        return self.__item.calculate_subtotal(self.__quantity)
+
+
+def display_menu(menu: dict[int, MenuItem]) -> None:
+    """Display available products and their prices."""
+    print("\n=== PRODUCT MENU ===")
+    print(f"{'No.':<5} {'Product':<15} {'Price':>10}")
+    print("-" * 32)
+    for item in menu.values():
+        print(item.format_line())
+    print("-" * 32)
+
+
+def take_orders(menu: dict[int, MenuItem]) -> list[OrderLine]:
+    """Allow the user to select multiple products, enter quantities, and compute subtotals."""
+    orders: list[OrderLine] = []
+
+    while True:
+        display_menu(menu)
+        choice = input("Enter product number to order (or 'done' to finish): ").strip().lower()
+
+        if choice == "done":
+            break
+
+        if not choice.isdigit() or int(choice) not in menu:
+            print("Invalid selection. Please choose a valid product number from the menu.")
+            continue
+
+        selected_item = menu[int(choice)]
+
+        while True:
+            qty_input = input(f"Enter quantity for {selected_item.get_name()}: ").strip()
+            if qty_input.isdigit() and int(qty_input) > 0:
+                quantity = int(qty_input)
+                break
+            print("Please enter a valid positive whole number for quantity.")
+
+        order_line = OrderLine(selected_item, quantity)
+        orders.append(order_line)
+        print(f"Added {order_line.get_quantity()} x {selected_item.get_name()} — Subtotal: ₱{order_line.get_subtotal():.2f}")
+
+        more = input("Would you like to order another product? (y/n): ").strip().lower()
+        if more != "y":
+            break
+
+    return orders
+
+
+def show_order_subtotals(orders: list[OrderLine]) -> None:
+    """Display each ordered item along with its calculated subtotal."""
+    print("\n=== ORDERED ITEMS & SUBTOTALS ===")
+    if not orders:
+        print("No items were ordered.")
+        return
+
+    for line in orders:
+        item = line.get_item()
+        print(
+            f"{item.get_name()} | Price: ₱{item.get_price():.2f} | "
+            f"Qty: {line.get_quantity()} | Subtotal: ₱{line.get_subtotal():.2f}"
+        )
+
+
+def main() -> None:
+    menu: dict[int, MenuItem] = {
+        1: FoodItem(1, "Burger", 50.00),
+        2: FoodItem(2, "Fries", 35.00),
+        3: DrinkItem(3, "Soft Drink", 25.00),
+    }
+
+    orders = take_orders(menu)
+    show_order_subtotals(orders)
+
+
+if __name__ == "__main__":
+    main()
