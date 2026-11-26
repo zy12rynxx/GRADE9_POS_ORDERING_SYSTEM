@@ -37,18 +37,18 @@ class MenuItem(ABC):
         pass
 
     def format_line(self) -> str:
-        return f"{self.get_item_id():<5} {self.get_name():<15} ₱{self.get_price():>8.2f}"
+        return f"{self.get_item_id():<5} {self.get_name():<18} ₱{self.get_price():>8.2f}"
 
 
 class FoodItem(MenuItem):
-    """Subclass inheriting from MenuItem."""
+    """Subclass inheriting from MenuItem for food products."""
 
     def calculate_subtotal(self, quantity: int) -> float:
         return self.get_price() * quantity
 
 
 class DrinkItem(MenuItem):
-    """Subclass inheriting from MenuItem."""
+    """Subclass inheriting from MenuItem for drink products."""
 
     def calculate_subtotal(self, quantity: int) -> float:
         return self.get_price() * quantity
@@ -84,13 +84,22 @@ class OrderLine:
 
 
 def display_menu(menu: dict[int, MenuItem]) -> None:
-    """Display available products and their prices."""
+    """Display available food and drink products grouped by category."""
     print("\n=== PRODUCT MENU ===")
-    print(f"{'No.':<5} {'Product':<15} {'Price':>10}")
-    print("-" * 32)
+    print(f"{'No.':<5} {'Product':<18} {'Price':>10}")
+    print("-" * 35)
+
+    print("--- FOOD ---")
     for item in menu.values():
-        print(item.format_line())
-    print("-" * 32)
+        if isinstance(item, FoodItem):
+            print(item.format_line())
+
+    print("\n--- DRINKS ---")
+    for item in menu.values():
+        if isinstance(item, DrinkItem):
+            print(item.format_line())
+
+    print("-" * 35)
 
 
 def take_orders(menu: dict[int, MenuItem]) -> list[OrderLine]:
@@ -119,7 +128,10 @@ def take_orders(menu: dict[int, MenuItem]) -> list[OrderLine]:
 
         order_line = OrderLine(selected_item, quantity)
         orders.append(order_line)
-        print(f"Added {order_line.get_quantity()} x {selected_item.get_name()} — Subtotal: ₱{order_line.get_subtotal():.2f}")
+        print(
+            f"Added {order_line.get_quantity()} x {selected_item.get_name()} "
+            f"— Subtotal: ₱{order_line.get_subtotal():.2f}"
+        )
 
         more = input("Would you like to order another product? (y/n): ").strip().lower()
         if more != "y":
@@ -145,9 +157,19 @@ def show_order_subtotals(orders: list[OrderLine]) -> None:
 
 def main() -> None:
     menu: dict[int, MenuItem] = {
+        # Food Items
         1: FoodItem(1, "Burger", 50.00),
-        2: FoodItem(2, "Fries", 35.00),
-        3: DrinkItem(3, "Soft Drink", 25.00),
+        2: FoodItem(2, "Cheeseburger", 65.00),
+        3: FoodItem(3, "Fries", 35.00),
+        4: FoodItem(4, "Chicken Nuggets", 75.00),
+        5: FoodItem(5, "Hotdog Sandwich", 45.00),
+        6: FoodItem(6, "Spaghetti", 60.00),
+        # Drink Items
+        7: DrinkItem(7, "Soft Drink", 25.00),
+        8: DrinkItem(8, "Iced Tea", 30.00),
+        9: DrinkItem(9, "Bottled Water", 20.00),
+        10: DrinkItem(10, "Lemonade", 35.00),
+        11: DrinkItem(11, "Iced Coffee", 55.00),
     }
 
     orders = take_orders(menu)
