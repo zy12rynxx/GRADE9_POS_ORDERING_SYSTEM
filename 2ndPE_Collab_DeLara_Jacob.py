@@ -33,15 +33,4 @@ class Receipt:
 
   def display(self) -> None:
     print(self.format_receipt())
-
-
-# Example usage
-if __name__ == "__main__":
-  order_items = [
-      OrderItem("Burger", 2, 120.00),
-      OrderItem("Fries", 1, 75.50),
-      OrderItem("Iced Tea", 2, 45.00),
-  ]
-  receipt = Receipt(order_items)
-  receipt.display()
-  
+    
