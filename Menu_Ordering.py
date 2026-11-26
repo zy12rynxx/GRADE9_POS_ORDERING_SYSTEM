@@ -105,22 +105,20 @@ def display_menu(menu: dict[int, MenuItem]) -> None:
 def take_orders(menu: dict[int, MenuItem]) -> list[OrderLine]:
     """Allow the user to select multiple products, enter quantities, and compute subtotals."""
     orders: list[OrderLine] = []
+    max_num = len(menu)
 
     while True:
         display_menu(menu)
-        choice = input("Enter product number to order (or 'done' to finish): ").strip().lower()
-
-        if choice == "done":
-            break
-
-        if not choice.isdigit() or int(choice) not in menu:
-            print("Invalid selection. Please choose a valid product number from the menu.")
-            continue
-
-        selected_item = menu[int(choice)]
 
         while True:
-            qty_input = input(f"Enter quantity for {selected_item.get_name()}: ").strip()
+            choice = input(f"Enter product number (1-{max_num}): ").strip()
+            if choice.isdigit() and int(choice) in menu:
+                selected_item = menu[int(choice)]
+                break
+            print(f"Invalid selection. Please enter a number from 1 to {max_num}.")
+
+        while True:
+            qty_input = input("Enter quantity: ").strip()
             if qty_input.isdigit() and int(qty_input) > 0:
                 quantity = int(qty_input)
                 break
@@ -128,13 +126,15 @@ def take_orders(menu: dict[int, MenuItem]) -> list[OrderLine]:
 
         order_line = OrderLine(selected_item, quantity)
         orders.append(order_line)
-        print(
-            f"Added {order_line.get_quantity()} x {selected_item.get_name()} "
-            f"— Subtotal: ₱{order_line.get_subtotal():.2f}"
-        )
+        print(f"Added: {selected_item.get_name()} x {order_line.get_quantity()}")
 
-        more = input("Would you like to order another product? (y/n): ").strip().lower()
-        if more != "y":
+        while True:
+            more = input("Order another product? (yes/no): ").strip().lower()
+            if more in ("yes", "no"):
+                break
+            print("Please enter 'yes' or 'no'.")
+
+        if more == "no":
             break
 
     return orders
