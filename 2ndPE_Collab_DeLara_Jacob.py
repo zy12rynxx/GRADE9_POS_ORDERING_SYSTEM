@@ -44,3 +44,4 @@ if __name__ == "__main__":
   ]
   receipt = Receipt(order_items)
   receipt.display()
+  
